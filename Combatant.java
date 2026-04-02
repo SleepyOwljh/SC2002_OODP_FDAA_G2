@@ -24,6 +24,10 @@ public abstract class Combatant {
 		this.isAbleToAct = true;
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	public int getHp() {
 		return hp;
 	}
