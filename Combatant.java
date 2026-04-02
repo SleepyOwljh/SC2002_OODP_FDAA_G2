@@ -66,20 +66,23 @@ public abstract class Combatant {
 	}
 
 	public void takeDamage(int amount) {
-		if (amount <= 0) {
+		
+		int damage = Math.max(0, amount - defense);
+
+		if (damage <= 0) {
 			return;
 		}
 		if (isInvulnerable) {
 			return;
 		}
-		setHp(hp - amount);
+		setHp(hp - damage);
 	}
 
-	public boolean getIsInvulnerable() {
+	public boolean getInvulnerable() {
 		return isInvulnerable;
 	}
 
-	public void setIsInvulnerable(boolean invulnerable) {
+	public void setInvulnerable(boolean invulnerable) {
 		this.isInvulnerable = invulnerable;
 	}
 
