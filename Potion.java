@@ -1,7 +1,3 @@
-public interface Item {
-    void useItem(Combatant user, Combatant target);
-}
-
 public class Potion implements Item{
     private int healAmount;
 

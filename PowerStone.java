@@ -1,7 +1,3 @@
-public interface Item {
-    void useItem(Combatant user, Combatant target);
-}
-
 public class PowerStone implements Item{
     public void useItem(Combatant user, Combatant target){
         user.getSpecialSkillAction();
