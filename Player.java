@@ -5,8 +5,8 @@ public abstract class Player extends Combatant {
 	private List<Item> inventory;
 	private int specialSkillCooldown;
 
-	public Player(int hp, int attack, int defense, int speed) {
-		super(hp, attack, defense, speed);
+	public Player(String name, int hp, int attack, int defense, int speed) {
+		super(name, hp, attack, defense, speed);
 		this.inventory = new ArrayList<>();
 		this.specialSkillCooldown = 0;
 	}
@@ -17,6 +17,10 @@ public abstract class Player extends Combatant {
 
 	public void setInventory(List<Item> inventory) {
 		this.inventory = inventory;
+	}
+
+	public int getSkillCooldown() {
+		return specialSkillCooldown;
 	}
 
 	public void useItem(Item item, Combatant target) {
@@ -34,7 +38,7 @@ public abstract class Player extends Combatant {
 	}
 
 	public void defend() {
-        applyStatusEffect(DefendBuff);
+        applyStatusEffect(new DefendBuff());
 	}
 
 	public void reduceCooldown() {

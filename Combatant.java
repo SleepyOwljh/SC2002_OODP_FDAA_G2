@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Combatant {
+	private String name;
 	private int hp;
 	private int maxHp;
 	private int attack;
@@ -11,7 +12,8 @@ public abstract class Combatant {
 	private boolean isInvulnerable;
 	private boolean isAbleToAct;
 
-	public Combatant(int hp, int attack, int defense, int speed) {
+	public Combatant(String name, int hp, int attack, int defense, int speed) {
+		this.name = name;
 		this.maxHp = hp;
 		this.hp = this.maxHp;
 		this.attack = attack;
