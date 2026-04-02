@@ -2,11 +2,14 @@ public class UseItemAction implements Action {
     
         private Item item;
         public UseItemAction(Item item) {
-            this.item = item;
+            this.item = itemToUse;
         }
 
         public UseItemAction(){}
         public void execute(Combatant user, Combatant target) {
-            item.user(user, target);
+            if (itemToUse != null) {
+                itemToUse.useItem(user, target);
+                user.getInventory().remove(itemToUse);
+            } 
         }
     }
