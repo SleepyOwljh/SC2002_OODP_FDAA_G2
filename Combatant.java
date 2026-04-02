@@ -7,7 +7,7 @@ public abstract class Combatant {
 	private int attack;
 	private int defense;
 	private int speed;
-	private List<StatusEffect> statusEffects;
+	protected List<StatusEffect> statusEffects;
 
 	public Combatant(int hp, int attack, int defense, int speed) {
 		this.maxHp = hp;
@@ -53,7 +53,7 @@ public abstract class Combatant {
 	}
 
 	public int getEffectiveDefense() {
-		// Future enhancement: include status effect modifiers.
+		// To be changed
 		return defense;
 	}
 
@@ -82,18 +82,20 @@ public abstract class Combatant {
 	public void applyStatusEffect(StatusEffect effect) {
 		if (effect != null) {
 			statusEffects.add(effect);
+			effect.applyEffect(this);
 		}
 	}
 
 	public void removeStatusEffect(StatusEffect effect) {
 		if (effect != null) {
 			statusEffects.remove(effect);
+			effect.removeEffect(this);
 		}
 	}
 
 	public boolean ableToAct() {
 		for (StatusEffect effect : statusEffects) {
-			if (effect != null && "StunEffect".equalsIgnoreCase(effect.getClass().getSimpleName())) {
+			if (effect instanceof StunEffect) {
 				return false;
 			}
 		}
@@ -101,6 +103,8 @@ public abstract class Combatant {
 	}
 
 	public void processTurnStart() {
-		// Placeholder for future status effect processing.
+		for (StatusEffect effect : statusEffects) {
+			effect.countDuration();
+		}
 	}
 }
