@@ -1,16 +1,14 @@
 public class Warrior extends Player {
 
+	private Action specialSkill;
+	
 	public Warrior() {
 		super(260, 40, 20, 30);
-	}
-
-	public void useSpecialSkill(Combatant target) {
-		
+		this.specialSkill = new ShieldBashAction();
 	}
 
 	@Override
 	public Action getSpecialSkillAction() {
-		
-		return null;
-	}
+		return this.specialSkill;
+	};
 }

@@ -1,19 +1,15 @@
-import java.util.List;
-
 public class Wizard extends Player {
+
+	private Action specialSkill;
 
 	public Wizard() {
 		super(200, 50, 10, 20);
-		
-	}
-
-	public void useSpecialSkill(List<Combatant> targets) {
-		
+		this.specialSkill = new ArcaneBlastAction();
 	}
 
 	@Override
 	public Action getSpecialSkillAction() {
 		
-		return null;
+		return this.specialSkill;
 	}
 }
