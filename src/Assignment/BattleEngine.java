@@ -1,6 +1,5 @@
 package Assignment;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,9 +12,6 @@ public class BattleEngine {
     private TurnOrderStrategy turnStrategy;
     private BattleEngineInterface ui;
     private int currentRound;
-    private Map<Combatant, Integer> stunDurations;
-    private boolean smokeBombActive;
-    private boolean smokeBombJustUsed;
 
     public BattleEngine(List<Player> players, List<Enemy> initialEnemies, List<Enemy> backupEnemies,
             TurnOrderStrategy turnStrategy, BattleEngineInterface ui) {
@@ -25,9 +21,6 @@ public class BattleEngine {
         this.turnStrategy = turnStrategy;
         this.ui = ui;
         this.currentRound = 1;
-        this.stunDurations = new HashMap<>();
-        this.smokeBombActive = false;
-        this.smokeBombJustUsed = false;
     }
 
     public void startBattle() {
@@ -70,13 +63,6 @@ public class BattleEngine {
 
         ui.showRoundSummary(buildRoundSummaryLine());
 
-        if (smokeBombActive) {
-            if (smokeBombJustUsed) {
-                smokeBombJustUsed = false;
-            } else {
-                smokeBombActive = false;
-            }
-        }
     }
 
     private boolean executeTurn(Combatant combatant) {
@@ -84,26 +70,12 @@ public class BattleEngine {
 
         if (!combatant.isAlive()) {
             String line = actorLabel + " → ELIMINATED: Skipped";
-            if (stunDurations.containsKey(combatant)) {
-                stunDurations.remove(combatant);
-                combatant.setIsAbleToAct(true);
-                line += " | Stun expires";
-            }
             ui.showActionLine(line);
             return false;
         }
 
-        if (isStunned(combatant)) {
-            int remainingTurns = stunDurations.get(combatant);
-            String line = actorLabel + " → STUNNED: Turn skipped";
-            if (remainingTurns <= 1) {
-                stunDurations.remove(combatant);
-                combatant.setIsAbleToAct(true);
-                line += " | Stun expires";
-            } else {
-                stunDurations.put(combatant, remainingTurns - 1);
-            }
-            ui.showActionLine(line);
+        if (!combatant.getIsAbleToAct()) {
+            ui.showActionLine(actorLabel + " → STUNNED: Turn skipped");
             return false;
         }
 
@@ -117,29 +89,24 @@ public class BattleEngine {
 
     private boolean executePlayerTurn(Player player) {
         Action chosenAction = ui.getPlayerActionChoice(player);
+        
+        // Special handling for UseItemAction to pick the item first
         if (chosenAction instanceof UseItemAction) {
-            return executeItemTurn(player);
+            Item item = ui.getItemChoice(player);
+            if (item == null) {
+                ui.showMessage(player.getName() + " has no items or cancelled.");
+                return false;
+            }
+            chosenAction = new UseItemAction(item);
         }
 
         Combatant target = resolveTarget(player, chosenAction);
-        String actorLabel = getCombatantLabel(player);
-
-        if (chosenAction instanceof DefendAction) {
-            ui.showActionLine(actorLabel + " → Defend");
-            return false;
-        }
-
-        if (chosenAction instanceof SpecialSkillAction) {
-            return executeSpecialSkill(player, target, false);
-        }
-
-        int beforeHp = target.getHp();
-        int damage = calculateDamage(player, target);
-        target.takeDamage(damage);
-        ui.showActionLine(
-                formatAttackLine(actorLabel, "BasicAttack", getCombatantLabel(target), beforeHp, target.getHp(),
-                        player.getAttack(), target.getDefense(), target.getHp() == 0, null));
-        return false;
+        
+        // Execute the action
+        chosenAction.execute(player, target);
+        
+        // Return true if it was a SpecialSkillAction
+        return (chosenAction instanceof SpecialSkillAction);
     }
 
     private void executeEnemyTurn(Enemy enemy) {
@@ -148,126 +115,10 @@ public class BattleEngine {
             return;
         }
 
-        String actorLabel = getCombatantLabel(enemy);
-        String targetLabel = getCombatantLabel(target);
-        int beforeHp = target.getHp();
-
-        if (smokeBombActive) {
-            ui.showActionLine(actorLabel + " → BasicAttack → " + targetLabel
-                    + ": 0 damage (Smoke Bomb active) | " + targetLabel + " HP: " + target.getHp());
-            return;
-        }
-
-        int damage = calculateDamage(enemy, target);
-        target.takeDamage(damage);
-        ui.showActionLine(
-                formatAttackLine(actorLabel, "BasicAttack", targetLabel, beforeHp, target.getHp(), enemy.getAttack(),
-                        target.getDefense(), target.getHp() == 0, null));
+        Action action = enemy.performTurn(target);
+        action.execute(enemy, target);
     }
 
-    private boolean executeSpecialSkill(Player player, Combatant target, boolean triggeredByPowerStone) {
-        String actorLabel = getCombatantLabel(player);
-        if (!triggeredByPowerStone && !player.canUseSpecialSkill()) {
-            ui.showActionLine(
-                    actorLabel + " → Special Skill unavailable | Cooldown: " + readCooldown(player) + " rounds");
-            return false;
-        }
-
-        if (player instanceof Warrior) {
-            int beforeHp = target.getHp();
-            int damage = calculateDamage(player, target);
-            target.takeDamage(damage);
-            applyStun(target, 2);
-            if (!triggeredByPowerStone) {
-                player.startCooldown();
-            }
-            String extra = getCombatantLabel(target) + " STUNNED (2 turns)";
-            if (!triggeredByPowerStone) {
-                extra += " | Cooldown set to " + readCooldown(player);
-            } else {
-                extra += " | Cooldown unchanged → " + readCooldown(player) + " (Power Stone does not affect cooldown)";
-            }
-            ui.showActionLine(
-                    formatAttackLine(actorLabel, "Shield Bash", getCombatantLabel(target), beforeHp, target.getHp(),
-                            player.getAttack(), target.getDefense(), target.getHp() == 0, extra));
-            return !triggeredByPowerStone;
-        }
-
-        if (player instanceof Wizard) {
-            List<Enemy> aliveEnemies = getAliveEnemies();
-            List<String> segments = new ArrayList<>();
-            for (Enemy enemy : aliveEnemies) {
-                int beforeHp = enemy.getHp();
-                int damage = calculateDamage(player, enemy);
-                enemy.takeDamage(damage);
-                String segment = getCombatantLabel(enemy) + " HP: " + beforeHp + " → " + enemy.getHp()
-                        + (enemy.getHp() == 0 ? " ✗ ELIMINATED" : "") + " (dmg: " + player.getAttack() + "-"
-                        + enemy.getDefense() + "=" + damage + ")";
-                if (enemy.getHp() == 0) {
-                    int beforeAtk = player.getAttack();
-                    player.setAttack(beforeAtk + 10);
-                    segment += " | ATK: " + beforeAtk + " → " + player.getAttack() + " (+10)";
-                }
-                segments.add(segment);
-            }
-
-            if (!triggeredByPowerStone) {
-                player.startCooldown();
-                segments.add("Cooldown set to " + readCooldown(player));
-            } else {
-                segments.add(
-                        "Cooldown unchanged → " + readCooldown(player) + " (Power Stone does not affect cooldown)");
-            }
-
-            ui.showActionLine(actorLabel + " → Arcane Blast → All Enemies: " + String.join(" | ", segments));
-            return !triggeredByPowerStone;
-        }
-
-        ui.showActionLine(actorLabel + " → Special Skill");
-        return false;
-    }
-
-    private boolean executeItemTurn(Player player) {
-        Item item = ui.getItemChoice(player);
-        String actorLabel = getCombatantLabel(player);
-        if (item == null) {
-            ui.showActionLine(actorLabel + " → Item unavailable");
-            return false;
-        }
-
-        String itemLabel = getItemLabel(item);
-        int beforeHp = player.getHp();
-
-        if (item instanceof Potion) {
-            player.heal(100);
-            player.getInventory().remove(item);
-            ui.showActionLine(actorLabel + " → Item → " + itemLabel + " used: HP: " + beforeHp + " → "
-                    + player.getHp() + " (+" + (player.getHp() - beforeHp) + ")");
-            return false;
-        }
-
-        if (item instanceof SmokeBomb) {
-            smokeBombActive = true;
-            smokeBombJustUsed = true;
-            player.getInventory().remove(item);
-            ui.showActionLine(actorLabel + " → Item → Smoke Bomb used: Enemy attacks deal 0 damage this turn + next");
-            return false;
-        }
-
-        if (item instanceof PowerStone) {
-            Combatant target = ui.getTargetChoice(getAliveEnemies());
-            player.getInventory().remove(item);
-            ui.showActionLine(actorLabel + " → Item → Power Stone used → "
-                    + (player instanceof Warrior ? "Shield Bash triggered" : "Arcane Blast triggered"));
-            executeSpecialSkill(player, target, true);
-            return false;
-        }
-
-        item.useItem(player, player);
-        player.getInventory().remove(item);
-        ui.showActionLine(actorLabel + " → Item → " + itemLabel + " used");
-        return false;
-    }
 
     private void handleBackupSpawn() {
         boolean allActiveDead = true;
@@ -379,14 +230,6 @@ public class BattleEngine {
         return Math.max(0, attacker.getAttack() - defender.getDefense());
     }
 
-    private void applyStun(Combatant target, int turns) {
-        stunDurations.put(target, turns);
-        target.setIsAbleToAct(false);
-    }
-
-    private boolean isStunned(Combatant combatant) {
-        return stunDurations.containsKey(combatant) && stunDurations.get(combatant) > 0;
-    }
 
     private String formatAttackLine(String actorLabel, String actionLabel, String targetLabel, int beforeHp,
             int afterHp,
@@ -465,7 +308,7 @@ public class BattleEngine {
             builder.append(" | ").append(getCombatantLabel(enemy)).append(" HP: ");
             if (enemy.isAlive()) {
                 builder.append(enemy.getHp());
-                if (isStunned(enemy)) {
+                if (!enemy.getIsAbleToAct()) {
                     builder.append(" [STUNNED]");
                 }
             } else {
@@ -476,9 +319,6 @@ public class BattleEngine {
         if (!players.isEmpty()) {
             Player player = players.get(0);
             builder.append(" | ").append(formatItemCounts(player));
-            if (smokeBombActive) {
-                builder.append(" | Effect: 1 turn remaining");
-            }
             builder.append(" | Special Skills Cooldown: ").append(readCooldown(player)).append(" rounds");
         }
 
@@ -518,13 +358,7 @@ public class BattleEngine {
     }
 
     private int readCooldown(Player player) {
-        try {
-            Field field = Player.class.getDeclaredField("specialSkillCooldown");
-            field.setAccessible(true);
-            return field.getInt(player);
-        } catch (ReflectiveOperationException error) {
-            return 0;
-        }
+        return player.getSkillCooldown();
     }
 
     private String inferDifficultyLabel() {
@@ -532,31 +366,7 @@ public class BattleEngine {
     }
 
     private String getCombatantLabel(Combatant combatant) {
-        if (combatant instanceof Player) {
-            return combatant.getClass().getSimpleName();
-        }
-
-        String type = combatant.getClass().getSimpleName();
-        List<Enemy> allEnemies = new ArrayList<>();
-        allEnemies.addAll(activeEnemies);
-        allEnemies.addAll(backupEnemies);
-
-        int sameTypeCount = 0;
-        int sameTypeIndex = 0;
-        for (Enemy enemy : allEnemies) {
-            if (enemy.getClass() == combatant.getClass()) {
-                sameTypeCount++;
-                if (enemy == combatant) {
-                    sameTypeIndex = sameTypeCount;
-                }
-            }
-        }
-
-        if (sameTypeCount <= 1) {
-            return type;
-        }
-
-        return type + " " + (char) ('A' + sameTypeIndex - 1);
+        return combatant.getName();
     }
 
     private String getItemLabel(Item item) {

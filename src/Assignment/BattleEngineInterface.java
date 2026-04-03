@@ -7,7 +7,11 @@ public class BattleEngineInterface {
     private final Scanner scanner;
 
     public BattleEngineInterface() {
-        this.scanner = new Scanner(System.in);
+        this(new Scanner(System.in));
+    }
+
+    public BattleEngineInterface(Scanner scanner) {
+        this.scanner = scanner;
     }
 
     public void showBattleIntro(List<String> introLines) {
@@ -64,7 +68,7 @@ public class BattleEngineInterface {
             case 3:
                 return new SpecialSkillAction();
             case 4:
-                return new UseItemAction();
+                return new UseItemAction(null);
             default:
                 return new BasicAttackAction();
         }
