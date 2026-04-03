@@ -62,11 +62,6 @@ public abstract class Combatant {
 		this.defense = newDef;
 	}
 
-	public int getEffectiveDefense() {
-		// To be changed
-		return defense;
-	}
-
 	public int getSpeed() {
 		return speed;
 	}

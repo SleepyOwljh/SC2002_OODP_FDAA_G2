@@ -23,22 +23,12 @@ public abstract class Player extends Combatant {
 		return specialSkillCooldown;
 	}
 
-	public void useItem(Item item, Combatant target) {
-        item.useItem(this, target);
-        // TODO update removal of item
-        inventory.remove(item);
-	}
-
 	public boolean canUseSpecialSkill() {
 		return specialSkillCooldown == 0;
 	}
 
 	public void startCooldown() {
 		specialSkillCooldown = 3;
-	}
-
-	public void defend() {
-        applyStatusEffect(new DefendBuff());
 	}
 
 	public void reduceCooldown() {
