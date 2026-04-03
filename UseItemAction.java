@@ -4,8 +4,6 @@ public class UseItemAction implements Action {
         public UseItemAction(Item item) {
             this.item = itemToUse;
         }
-
-        public UseItemAction(){}
         public void execute(Combatant user, Combatant target) {
             if (itemToUse != null) {
                 itemToUse.useItem(user, target);
