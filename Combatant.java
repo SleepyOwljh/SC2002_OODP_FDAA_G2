@@ -66,6 +66,10 @@ public abstract class Combatant {
 		return speed;
 	}
 
+	public int setSpeed(int newSpd) {
+		this.speed = newSpd;
+	}
+
 	public void takeDamage(int amount) {
 		
 		int damage = Math.max(0, amount - defense);
