@@ -4,9 +4,5 @@ public class ArcaneBlastAction implements Action {
     ArcaneBlastBuff effect = new ArcaneBlastBuff();
     int damage = user.getAttack();
     target.takeDamage(damage);
-    if (!target.isAlive()) {
-        user.addEffect(effect);
-        effect.applyEffect(user);
+        }
     }
-}
-}
