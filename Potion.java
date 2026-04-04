@@ -4,5 +4,8 @@ public class Potion implements Item{
     public Potion(){
         this.healAmount = 100;
     }
+    public void useItem(Combatant user, Combatant target){
+        heal(healAmount)
+    }
 }
 
