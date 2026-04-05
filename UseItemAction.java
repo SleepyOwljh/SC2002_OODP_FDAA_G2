@@ -9,7 +9,7 @@ public class UseItemAction implements Action {
     public void execute(Combatant user, Combatant target) {
         if (item != null) {
             item.useItem(user, target);
-            user.getInventory().remove(itemToUse);
+            user.getInventory().remove(item);
             } 
         }
     }
