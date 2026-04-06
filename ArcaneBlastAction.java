@@ -1,9 +1,15 @@
 public class ArcaneBlastAction implements Action {
-    public ArcaneBlastAction() {}
+    private List<Combatant> allEnemies;
+    
+    public ArcaneBlastAction(List <Combatant> allEnemies) {
+        this.allEnemies = allEnemies;
+    }
     public void execute(Combatant user, Combatant target) {
-    int damage = user.getAttack();
-    target.takeDamage(damage);
+        for (Combatant enemy : allEnemies) {
+            if (enemy.isAlive()) {
+                enemy.takeDamage(user.getAttack());
+            }
     ArcaneBlastBuff effect = new ArcaneBlastBuff();
     user.applyStatusEffect(effect)
-        }
+        
     }
