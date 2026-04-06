@@ -4,6 +4,7 @@ public class ArcaneBlastAction implements Action {
     public ArcaneBlastAction(List <Combatant> allEnemies) {
         this.allEnemies = allEnemies;
     }
+    @Override
     public void execute(Combatant user, Combatant target) {
         for (Combatant enemy : allEnemies) {
             if (enemy.isAlive()) {
