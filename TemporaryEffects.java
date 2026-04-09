@@ -5,15 +5,22 @@ abstract class TemporaryEffects implements StatusEffect {
         this.duration = startingDuration;
     }
 
+    @Override
     public void countDuration() {
-        duration--;
+        if (duration > 0) {
+            duration--;
+        }
     }
 
+    @Override
     public boolean isExpired() {
         return duration <= 0;
     }
 
+    @Override
     public void extendDuration(int additionalDuration) {
-        this.duration += additionalDuration;
+        if (additionalDuration > 0) {
+            this.duration += additionalDuration;
+        }
     }
 }
