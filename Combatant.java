@@ -1,21 +1,20 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class Combatant {
-	private String name;
 	private int hp;
-	private int maxHp;
+	private final int maxHp;
 	private int attack;
 	private int defense;
 	private int speed;
-	protected List<StatusEffect> statusEffects;
+	protected final List<StatusEffect> statusEffects;
 	private boolean isInvulnerable;
 	private boolean isAbleToAct;
 
-	public Combatant(String name, int hp, int attack, int defense, int speed) {
-		this.name = name;
+	public Combatant(int hp, int attack, int defense, int speed) {
 		this.maxHp = hp;
-		this.hp = this.maxHp;
+		this.hp = hp;
 		this.attack = attack;
 		this.defense = defense;
 		this.speed = speed;
@@ -25,7 +24,7 @@ public abstract class Combatant {
 	}
 
 	public String getName() {
-		return name;
+		return getClass().getSimpleName();
 	}
 
 	public int getHp() {
@@ -66,21 +65,23 @@ public abstract class Combatant {
 		return speed;
 	}
 
-	public int setSpeed(int newSpd) {
+	public void setSpeed(int newSpd) {
 		this.speed = newSpd;
 	}
 
-	public void takeDamage(int amount) {
-		
+	public List<StatusEffect> getStatusEffects() {
+		return Collections.unmodifiableList(statusEffects);
+	}
+
+	public int takeDamage(int amount) {
 		int damage = Math.max(0, amount - defense);
 
-		if (damage <= 0) {
-			return;
+		if (damage <= 0 || isInvulnerable) {
+			return 0;
 		}
-		if (isInvulnerable) {
-			return;
-		}
+
 		setHp(hp - damage);
+		return damage;
 	}
 
 	public boolean getInvulnerable() {
@@ -136,8 +137,53 @@ public abstract class Combatant {
 	}
 
 	public void processTurnStart() {
-		for (StatusEffect effect : statusEffects) {
+		for (StatusEffect effect : new ArrayList<>(statusEffects)) {
 			effect.countDuration();
 		}
+	}
+
+	public void removeExpiredStatusEffects() {
+		for (StatusEffect effect : new ArrayList<>(statusEffects)) {
+			if (effect.isExpired()) {
+				removeStatusEffect(effect);
+			}
+		}
+	}
+
+	// ─── Inventory and skill abstractions (overridden by Player) ───
+	public boolean hasInventory() {
+		return false;
+	}
+
+	public List<Item> getInventory() {
+		return Collections.emptyList();
+	}
+
+	public void removeFromInventory(Item item) {
+		// Default no-op; overridden by Player
+	}
+
+	public Action getSpecialSkillAction() {
+		return null;
+	}
+
+	public int getSkillCooldown() {
+		return 0;
+	}
+
+	public boolean canUseSpecialSkill() {
+		return false;
+	}
+
+	public void startCooldown() {
+		// Default no-op; overridden by Player
+	}
+
+	public boolean isPlayerControlled() {
+		return false;
+	}
+
+	public Action getAction() {
+		return new BasicAttackAction();
 	}
 }
