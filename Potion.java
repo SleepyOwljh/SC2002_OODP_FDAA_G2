@@ -11,9 +11,4 @@ public class Potion implements Item {
             user.heal(healAmount);
         }
     }
-
-    @Override
-    public String getResultMessage(Combatant user, int hpBefore) {
-        return "Potion used: HP: " + hpBefore + " → " + user.getHp() + " (+" + (user.getHp() - hpBefore) + ")";
-    }
 }

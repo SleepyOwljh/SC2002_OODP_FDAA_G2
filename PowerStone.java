@@ -4,19 +4,16 @@ public class PowerStone implements Item {
 
     @Override
     public void useItem(Combatant user, Combatant target) {
-        Action specialSkill = user.getSpecialSkillAction();
-        if (specialSkill != null) {
-            specialSkill.execute(user, target);
+        if (!(user instanceof Player)) {
+            return;
         }
+
+        Player player = (Player) user;
+        player.getSpecialSkillAction().execute(user, target);
     }
 
     @Override
     public String getDisplayName() {
         return "Power Stone";
-    }
-
-    @Override
-    public boolean triggersSpecialSkill() {
-        return true;
     }
 }

@@ -149,41 +149,4 @@ public abstract class Combatant {
 			}
 		}
 	}
-
-	// ─── Inventory and skill abstractions (overridden by Player) ───
-	public boolean hasInventory() {
-		return false;
-	}
-
-	public List<Item> getInventory() {
-		return Collections.emptyList();
-	}
-
-	public void removeFromInventory(Item item) {
-		// Default no-op; overridden by Player
-	}
-
-	public Action getSpecialSkillAction() {
-		return null;
-	}
-
-	public int getSkillCooldown() {
-		return 0;
-	}
-
-	public boolean canUseSpecialSkill() {
-		return false;
-	}
-
-	public void startCooldown() {
-		// Default no-op; overridden by Player
-	}
-
-	public boolean isPlayerControlled() {
-		return false;
-	}
-
-	public Action getAction() {
-		return new BasicAttackAction();
-	}
 }
