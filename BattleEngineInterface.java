@@ -114,7 +114,7 @@ public class BattleEngineInterface {
         for (int i = 0; i < orderedCombatants.size(); i++) {
             Combatant combatant = orderedCombatants.get(i);
             if (i > 0) {
-                orderLine.append(" → ");
+                orderLine.append(" -> ");
             }
 
             if (combatant instanceof Enemy && enemies.size() > 1) {
