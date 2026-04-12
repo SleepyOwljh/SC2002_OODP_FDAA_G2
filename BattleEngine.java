@@ -192,7 +192,7 @@ public class BattleEngine {
                 .append(": HP: ").append(hpBefore).append(" -> ").append(target.getHp());
 
         if (!target.isAlive()) {
-            msg.append(" ✗ ELIMINATED");
+            msg.append(" X ELIMINATED");
         }
 
         msg.append(" (dmg: ").append(player.getAttack()).append("-").append(targetDefense).append("=")
@@ -249,7 +249,7 @@ public class BattleEngine {
         if (target.isAlive()) {
             msg.append(" | ").append(targetName).append(" STUNNED (2 turns)");
         } else {
-            msg.append(" ✗ ELIMINATED");
+            msg.append(" X ELIMINATED");
         }
 
         if (fromPowerStone) {
@@ -307,7 +307,7 @@ public class BattleEngine {
 
             message.append(enemyName).append(" HP: ").append(hpBefore.get(i)).append(" -> ").append(enemy.getHp());
             if (!enemy.isAlive()) {
-                message.append(" ✗ ELIMINATED");
+                message.append(" X ELIMINATED");
             }
             message.append(" (dmg: ").append(attackValue).append("-").append(defenses.get(i)).append("=")
                     .append(damage).append(")");
@@ -461,7 +461,7 @@ public class BattleEngine {
         }
     }
 
-    // ─── A7 + A8: Round summary with [STUNNED], ✗, and ← consumed ───
+    // ─── A7 + A8: Round summary with [STUNNED], X, and ← consumed ───
     private void showRoundSummary() {
         if (players.isEmpty()) {
             return;
@@ -472,11 +472,11 @@ public class BattleEngine {
         summary.append("End of Round ").append(currentRound).append(": ");
         summary.append(player.getName()).append(" HP: ").append(player.getHp()).append("/").append(player.getMaxHp());
 
-        // A7: Show ✗ for dead enemies and [STUNNED] tag for stunned ones
+        // A7: Show X for dead enemies and [STUNNED] tag for stunned ones
         for (Enemy enemy : activeEnemies) {
             summary.append(" | ").append(getCombatantLabel(enemy)).append(" HP: ");
             if (!enemy.isAlive()) {
-                summary.append("✗");
+                summary.append("X");
             } else {
                 summary.append(enemy.getHp());
                 if (!enemy.getIsAbleToAct()) {
