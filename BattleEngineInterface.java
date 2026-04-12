@@ -4,8 +4,6 @@ import java.util.Scanner;
 
 public class BattleEngineInterface {
     private final Scanner scanner;
-    private List<Enemy> activeEnemies;
-    private List<Enemy> backupEnemies;
 
     public BattleEngineInterface() {
         scanner = new Scanner(System.in);
@@ -17,11 +15,6 @@ public class BattleEngineInterface {
         } else {
             this.scanner = scanner;
         }
-    }
-
-    public void setEnemyContext(List<Enemy> activeEnemies, List<Enemy> backupEnemies) {
-        this.activeEnemies = activeEnemies;
-        this.backupEnemies = backupEnemies;
     }
 
     public void showLoadingScreen() {
@@ -49,46 +42,19 @@ public class BattleEngineInterface {
     }
 
     public Player choosePlayer() {
-        int choice = choosePlayerChoice();
-        return createPlayer(choice);
-    }
-
-    public Player createPlayer(int choice) {
-        switch (choice) {
-            case 1:
-                return new Warrior();
-            case 2:
-            default:
-                return new Wizard();
-        }
-    }
-
-    public int choosePlayerChoice() {
         System.out.println("Select your player:");
         System.out.println("1. Warrior");
         System.out.println("2. Wizard");
 
-        return getValidInput(1, 2);
+        int choice = getValidInput(1, 2);
+        if (choice == 1) {
+            return new Warrior();
+        }
+        return new Wizard();
     }
 
     public List<Item> chooseStartingItems() {
-        return createItemsFromChoices(chooseStartingItemChoices());
-    }
-
-    public List<Item> createItemsFromChoices(List<Integer> choices) {
-        List<Item> items = new ArrayList<>();
-        if (choices == null) {
-            return items;
-        }
-
-        for (Integer choice : choices) {
-            items.add(createItem(choice));
-        }
-        return items;
-    }
-
-    public List<Integer> chooseStartingItemChoices() {
-        List<Integer> choices = new ArrayList<>();
+        List<Item> chosenItems = new ArrayList<>();
         System.out.println();
         System.out.println("Choose 2 starting items (duplicates allowed):");
 
@@ -98,10 +64,11 @@ public class BattleEngineInterface {
             System.out.println("2. Power Stone");
             System.out.println("3. Smoke Bomb");
 
-            choices.add(getValidInput(1, 3));
+            int choice = getValidInput(1, 3);
+            chosenItems.add(createItem(choice));
         }
 
-        return choices;
+        return chosenItems;
     }
 
     public int chooseDifficulty() {
@@ -147,7 +114,7 @@ public class BattleEngineInterface {
         for (int i = 0; i < orderedCombatants.size(); i++) {
             Combatant combatant = orderedCombatants.get(i);
             if (i > 0) {
-                orderLine.append(" → ");
+                orderLine.append(" -> ");
             }
 
             if (combatant instanceof Enemy && enemies.size() > 1) {
@@ -213,10 +180,15 @@ public class BattleEngineInterface {
         }
     }
 
-    public Action getPlayerActionChoice(Combatant player) {
-        String skillName = player.getSpecialSkillAction().getActionName();
+    public Action getPlayerActionChoice(Player player) {
+        String skillName;
 
         while (true) {
+            if (player.getSpecialSkillAction() instanceof ShieldBashAction) {
+                skillName = "Shield Bash";
+            } else {
+                skillName = "Arcane Blast";
+            }
 
             System.out.println();
             System.out.println("Choose an action for " + player.getName() + ":");
@@ -272,7 +244,7 @@ public class BattleEngineInterface {
         return livingEnemies.get(choice - 1);
     }
 
-    public Item getItemChoice(Combatant player) {
+    public Item getItemChoice(Player player) {
         List<Item> inventory = player.getInventory();
         if (inventory.isEmpty()) {
             return null;
@@ -332,257 +304,6 @@ public class BattleEngineInterface {
                 scanner.next();
             }
             System.out.println("Invalid input. Please enter a number between " + min + " and " + max + ".");
-        }
-    }
-
-    // ─── Battle display methods ───
-
-    public void showEliminatedSkip(Combatant combatant) {
-        StringBuilder msg = new StringBuilder();
-        msg.append(getCombatantLabel(combatant)).append(" → ELIMINATED: Skipped");
-        for (StatusEffect effect : combatant.getStatusEffects()) {
-            if (effect instanceof StunEffect) {
-                msg.append(" | Stun expires");
-                break;
-            }
-        }
-        showMessage(msg.toString());
-    }
-
-    public void showStunnedSkip(Combatant combatant) {
-        showMessage(getCombatantLabel(combatant) + " → STUNNED: Turn skipped");
-    }
-
-    public void showItemCancel(Combatant user) {
-        showMessage(user.getName() + " cancels item use.");
-    }
-
-    public void showItemUse(Combatant user, Item item, int hpBefore) {
-        showMessage(user.getName() + " → Item → " + item.getResultMessage(user, hpBefore));
-    }
-
-    public void showDefend(Combatant user) {
-        showMessage(user.getName() + " → Defend: DEF +10 for the current round and the next round");
-    }
-
-    public void showSingleTargetAttack(Combatant user, Action action, Combatant target,
-            int hpBefore, int targetDefense) {
-        StringBuilder msg = new StringBuilder();
-        msg.append(user.getName()).append(" → ").append(action.getActionName()).append(" → ")
-                .append(getCombatantLabel(target))
-                .append(": HP: ").append(hpBefore).append(" → ").append(target.getHp());
-
-        if (!target.isAlive()) {
-            msg.append(" ✗ ELIMINATED");
-        }
-
-        msg.append(" (dmg: ").append(user.getAttack()).append("−").append(targetDefense).append("=")
-                .append(Math.max(0, user.getAttack() - targetDefense)).append(")");
-
-        if (user.getSkillCooldown() > 0) {
-            msg.append(" | Cooldown: ").append(user.getSkillCooldown());
-        }
-
-        appendAllEnemiesDefeated(msg);
-        showMessage(msg.toString());
-    }
-
-    public void showTargetedSkill(Combatant user, Action specialSkill, Combatant target,
-            int hpBefore, int targetDefense, boolean fromPowerStone) {
-        StringBuilder msg = new StringBuilder();
-        msg.append(user.getName()).append(" → ");
-
-        if (fromPowerStone) {
-            msg.append("Item → Power Stone used → ").append(specialSkill.getActionName()).append(" triggered → ");
-        } else {
-            msg.append(specialSkill.getActionName()).append(" → ");
-        }
-
-        String targetName = getCombatantLabel(target);
-        msg.append(targetName).append(": HP: ").append(hpBefore).append(" → ").append(target.getHp())
-                .append(" (dmg: ").append(user.getAttack()).append("−").append(targetDefense).append("=")
-                .append(Math.max(0, user.getAttack() - targetDefense)).append(")");
-
-        if (target.isAlive() && specialSkill.appliesStun()) {
-            msg.append(" | ").append(targetName).append(" STUNNED (2 turns)");
-        } else if (!target.isAlive()) {
-            msg.append(" ✗ ELIMINATED");
-        }
-
-        appendCooldownInfo(msg, user, fromPowerStone);
-        appendAllEnemiesDefeated(msg);
-        showMessage(msg.toString());
-    }
-
-    public void showAoESkill(Combatant user, Action specialSkill, List<Enemy> targets,
-            List<Integer> hpBefore, List<Integer> defenses, int startingAttack, boolean fromPowerStone) {
-        int attackValue = startingAttack;
-
-        StringBuilder message = new StringBuilder();
-        message.append(user.getName()).append(" → ");
-
-        if (fromPowerStone) {
-            message.append("Item → Power Stone used → ").append(specialSkill.getActionName())
-                    .append(" triggered → All Enemies (ATK: ");
-        } else {
-            message.append(specialSkill.getActionName()).append(" → All Enemies (ATK: ");
-        }
-
-        message.append(startingAttack).append("): ");
-
-        for (int i = 0; i < targets.size(); i++) {
-            Enemy enemy = targets.get(i);
-            String enemyName = getCombatantLabel(enemy);
-            int damage = Math.max(0, attackValue - defenses.get(i));
-
-            message.append(enemyName).append(" HP: ").append(hpBefore.get(i)).append(" → ").append(enemy.getHp());
-            if (!enemy.isAlive()) {
-                message.append(" ✗ ELIMINATED");
-            }
-            message.append(" (dmg: ").append(attackValue).append("−").append(defenses.get(i)).append("=")
-                    .append(damage).append(")");
-
-            if (hpBefore.get(i) > 0 && !enemy.isAlive()) {
-                message.append(" | ATK: ").append(attackValue).append(" → ").append(attackValue + 10)
-                        .append(" (+10)");
-                attackValue += 10;
-            }
-
-            if (i < targets.size() - 1) {
-                message.append(" | ");
-            }
-        }
-
-        appendCooldownInfo(message, user, fromPowerStone);
-        appendAllEnemiesDefeated(message);
-        showMessage(message.toString());
-    }
-
-    public void showEnemyAttack(Combatant enemy, Action enemyAction, Combatant target, int hpBefore) {
-        if (target.getInvulnerable()) {
-            showMessage(getCombatantLabel(enemy) + " → " + enemyAction.getActionName() + " → " + target.getName()
-                    + ": 0 damage (Smoke Bomb active) | " + target.getName() + " HP: " + target.getHp());
-        } else {
-            int defense = target.getDefense();
-            int damage = Math.max(0, enemy.getAttack() - defense);
-            showMessage(getCombatantLabel(enemy) + " → " + enemyAction.getActionName() + " → " + target.getName()
-                    + ": HP: " + hpBefore + " → " + target.getHp() + " (dmg: " + enemy.getAttack() + "−" + defense
-                    + "=" + damage + ")");
-        }
-    }
-
-    public void showBackupSpawn(List<Enemy> backups) {
-        StringBuilder spawnMsg = new StringBuilder();
-        spawnMsg.append("All initial enemies eliminated → Backup Spawn triggered! ");
-        for (int i = 0; i < backups.size(); i++) {
-            Enemy backup = backups.get(i);
-            if (i > 0) {
-                spawnMsg.append(" + ");
-            }
-            spawnMsg.append(backup.getName()).append(" (HP: ").append(backup.getHp()).append(")");
-        }
-        spawnMsg.append(" enter simultaneously");
-        showMessage(spawnMsg.toString());
-    }
-
-    public void showRoundSummary(int currentRound, Player player) {
-        StringBuilder summary = new StringBuilder();
-        summary.append("End of Round ").append(currentRound).append(": ");
-        summary.append(player.getName()).append(" HP: ").append(player.getHp()).append("/").append(player.getMaxHp());
-
-        for (Enemy enemy : activeEnemies) {
-            summary.append(" | ").append(getCombatantLabel(enemy)).append(" HP: ");
-            if (!enemy.isAlive()) {
-                summary.append("✗");
-            } else {
-                summary.append(enemy.getHp());
-                if (!enemy.getIsAbleToAct()) {
-                    summary.append(" [STUNNED]");
-                }
-            }
-        }
-
-        List<String> shownTypes = new ArrayList<String>();
-        for (Item item : player.getInventory()) {
-            String name = item.getDisplayName();
-            if (!shownTypes.contains(name)) {
-                shownTypes.add(name);
-            }
-        }
-
-        for (String itemName : shownTypes) {
-            int count = 0;
-            for (Item item : player.getInventory()) {
-                if (item.getDisplayName().equals(itemName)) {
-                    count++;
-                }
-            }
-            summary.append(" | ").append(itemName).append(": ").append(count);
-        }
-
-        if (player.getInventory().isEmpty()) {
-            summary.append(" | Item action no longer available");
-        }
-
-        summary.append(" | Special Skills Cooldown: ").append(player.getSkillCooldown()).append(" ");
-        if (player.getSkillCooldown() <= 1) {
-            summary.append("Round");
-        } else {
-            summary.append("Rounds");
-        }
-
-        showMessage(summary.toString());
-    }
-
-    // ─── Private display helpers ───
-
-    private String getCombatantLabel(Combatant combatant) {
-        if (!(combatant instanceof Enemy) || activeEnemies == null) {
-            return combatant.getName();
-        }
-
-        Enemy enemy = (Enemy) combatant;
-        int sameTypeCount = 0;
-        int sameTypeIndex = 0;
-
-        for (Enemy currentEnemy : activeEnemies) {
-            if (currentEnemy.getClass() == enemy.getClass()) {
-                if (currentEnemy == enemy) {
-                    sameTypeIndex = sameTypeCount;
-                }
-                sameTypeCount++;
-            }
-        }
-
-        if (sameTypeCount <= 1) {
-            return enemy.getName();
-        }
-
-        char suffix = (char) ('A' + sameTypeIndex);
-        return enemy.getName() + " " + suffix;
-    }
-
-    private void appendAllEnemiesDefeated(StringBuilder msg) {
-        boolean allDefeated = true;
-        if (activeEnemies != null) {
-            for (Enemy enemy : activeEnemies) {
-                if (enemy.isAlive()) {
-                    allDefeated = false;
-                    break;
-                }
-            }
-        }
-        if (allDefeated && (backupEnemies == null || backupEnemies.isEmpty())) {
-            msg.append(" | All enemies defeated");
-        }
-    }
-
-    private void appendCooldownInfo(StringBuilder msg, Combatant user, boolean fromPowerStone) {
-        if (fromPowerStone) {
-            msg.append(" | Power Stone consumed | Cooldown unchanged → ").append(user.getSkillCooldown())
-                    .append(" (Power Stone does not affect cooldown)");
-        } else {
-            msg.append(" | Cooldown set to 3");
         }
     }
 

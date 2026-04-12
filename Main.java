@@ -14,14 +14,45 @@ public class Main {
             if (playerChoice == 0 || itemChoices.isEmpty()) {
                 ui.showLoadingScreen();
 
-                playerChoice = ui.choosePlayerChoice();
-                itemChoices = ui.chooseStartingItemChoices();
+                Player selectedPlayer = ui.choosePlayer();
+                if (selectedPlayer instanceof Warrior) {
+                    playerChoice = 1;
+                } else {
+                    playerChoice = 2;
+                }
+
+                List<Item> selectedItems = ui.chooseStartingItems();
+                itemChoices.clear();
+                for (Item item : selectedItems) {
+                    if (item instanceof Potion) {
+                        itemChoices.add(1);
+                    } else if (item instanceof PowerStone) {
+                        itemChoices.add(2);
+                    } else {
+                        itemChoices.add(3);
+                    }
+                }
+
                 difficulty = ui.chooseDifficulty();
             }
 
-            Player chosenPlayer = ui.createPlayer(playerChoice);
+            Player chosenPlayer;
+            if (playerChoice == 1) {
+                chosenPlayer = new Warrior();
+            } else {
+                chosenPlayer = new Wizard();
+            }
 
-            List<Item> freshItems = ui.createItemsFromChoices(itemChoices);
+            List<Item> freshItems = new ArrayList<>();
+            for (Integer choice : itemChoices) {
+                if (choice == 1) {
+                    freshItems.add(new Potion());
+                } else if (choice == 2) {
+                    freshItems.add(new PowerStone());
+                } else {
+                    freshItems.add(new SmokeBomb());
+                }
+            }
             chosenPlayer.setInventory(freshItems);
 
             List<Player> players = new ArrayList<>();

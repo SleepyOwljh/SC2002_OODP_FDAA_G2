@@ -3,10 +3,12 @@ public class SmokeBombEffect extends TemporaryEffects{
         super(2);
     }
 
+    @Override
     public void applyEffect(Combatant target) {
         target.setInvulnerable(true);
     }
 
+    @Override
     public void removeEffect(Combatant target) {
         target.setInvulnerable(false);
     }

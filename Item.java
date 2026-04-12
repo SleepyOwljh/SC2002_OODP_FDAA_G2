@@ -4,12 +4,4 @@ public interface Item {
     default String getDisplayName() {
         return getClass().getSimpleName();
     }
-
-    default String getResultMessage(Combatant user, int hpBefore) {
-        return getDisplayName() + " used";
-    }
-
-    default boolean triggersSpecialSkill() {
-        return false;
-    }
 }
