@@ -195,7 +195,7 @@ public class BattleEngine {
             msg.append(" ✗ ELIMINATED");
         }
 
-        msg.append(" (dmg: ").append(player.getAttack()).append("−").append(targetDefense).append("=")
+        msg.append(" (dmg: ").append(player.getAttack()).append("-").append(targetDefense).append("=")
                 .append(Math.max(0, player.getAttack() - targetDefense)).append(")");
 
         // A4: Show cooldown when relevant
@@ -243,7 +243,7 @@ public class BattleEngine {
         }
 
         msg.append(targetName).append(": HP: ").append(hpBefore).append(" -> ").append(target.getHp())
-                .append(" (dmg: ").append(player.getAttack()).append("−").append(targetDefense).append("=")
+                .append(" (dmg: ").append(player.getAttack()).append("-").append(targetDefense).append("=")
                 .append(Math.max(0, player.getAttack() - targetDefense)).append(")");
 
         if (target.isAlive()) {
@@ -309,7 +309,7 @@ public class BattleEngine {
             if (!enemy.isAlive()) {
                 message.append(" ✗ ELIMINATED");
             }
-            message.append(" (dmg: ").append(attackValue).append("−").append(defenses.get(i)).append("=")
+            message.append(" (dmg: ").append(attackValue).append("-").append(defenses.get(i)).append("=")
                     .append(damage).append(")");
 
             if (hpBefore.get(i) > 0 && !enemy.isAlive()) {
@@ -356,7 +356,7 @@ public class BattleEngine {
             int defense = target.getDefense();
             int damage = Math.max(0, enemy.getAttack() - defense);
             ui.showMessage(getCombatantLabel(enemy) + " -> BasicAttack -> " + target.getName() + ": HP: " + hpBefore
-                    + " -> " + target.getHp() + " (dmg: " + enemy.getAttack() + "−" + defense + "=" + damage + ")");
+                    + " -> " + target.getHp() + " (dmg: " + enemy.getAttack() + "-" + defense + "=" + damage + ")");
         }
     }
 
