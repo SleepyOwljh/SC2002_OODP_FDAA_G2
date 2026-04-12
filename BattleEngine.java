@@ -80,7 +80,7 @@ public class BattleEngine {
         // A1: Print skip line for eliminated combatants
         if (!currentCombatant.isAlive()) {
             StringBuilder msg = new StringBuilder();
-            msg.append(getCombatantLabel(currentCombatant)).append(" → ELIMINATED: Skipped");
+            msg.append(getCombatantLabel(currentCombatant)).append(" -> ELIMINATED: Skipped");
             // Check if stun expires on this dead combatant
             for (StatusEffect effect : currentCombatant.getStatusEffects()) {
                 if (effect instanceof StunEffect) {
@@ -97,7 +97,7 @@ public class BattleEngine {
 
         // A2: Proper stun message matching LogicalGameFlow.md
         if (!currentCombatant.getIsAbleToAct()) {
-            ui.showMessage(getCombatantLabel(currentCombatant) + " → STUNNED: Turn skipped");
+            ui.showMessage(getCombatantLabel(currentCombatant) + " -> STUNNED: Turn skipped");
             currentCombatant.removeExpiredStatusEffects();
             return;
         }
@@ -130,14 +130,14 @@ public class BattleEngine {
             if (chosenItem instanceof Potion) {
                 int hpBefore = player.getHp();
                 action.execute(player, player);
-                ui.showMessage(player.getName() + " → Item → Potion used: HP: " + hpBefore + " → "
+                ui.showMessage(player.getName() + " -> Item -> Potion used: HP: " + hpBefore + " -> "
                         + player.getHp() + " (+" + (player.getHp() - hpBefore) + ")");
                 return;
             }
 
             if (chosenItem instanceof SmokeBomb) {
                 action.execute(player, player);
-                ui.showMessage(player.getName() + " → Item → Smoke Bomb used: Enemy attacks deal 0 damage this turn + next");
+                ui.showMessage(player.getName() + " -> Item -> Smoke Bomb used: Enemy attacks deal 0 damage this turn + next");
                 return;
             }
 
@@ -160,7 +160,7 @@ public class BattleEngine {
 
         if (action instanceof DefendAction) {
             action.execute(player, player);
-            ui.showMessage(player.getName() + " → Defend: DEF +10 for the current round and the next round");
+            ui.showMessage(player.getName() + " -> Defend: DEF +10 for the current round and the next round");
             return;
         }
 
@@ -188,8 +188,8 @@ public class BattleEngine {
 
         // A4 + A5: Append cooldown and "All enemies defeated" to BasicAttack
         StringBuilder msg = new StringBuilder();
-        msg.append(player.getName()).append(" → BasicAttack → ").append(targetName)
-                .append(": HP: ").append(hpBefore).append(" → ").append(target.getHp());
+        msg.append(player.getName()).append(" -> BasicAttack -> ").append(targetName)
+                .append(": HP: ").append(hpBefore).append(" -> ").append(target.getHp());
 
         if (!target.isAlive()) {
             msg.append(" ✗ ELIMINATED");
@@ -234,15 +234,15 @@ public class BattleEngine {
         }
 
         StringBuilder msg = new StringBuilder();
-        msg.append(player.getName()).append(" → ");
+        msg.append(player.getName()).append(" -> ");
 
         if (fromPowerStone) {
-            msg.append("Item → Power Stone used → Shield Bash triggered → ");
+            msg.append("Item -> Power Stone used -> Shield Bash triggered -> ");
         } else {
-            msg.append("Shield Bash → ");
+            msg.append("Shield Bash -> ");
         }
 
-        msg.append(targetName).append(": HP: ").append(hpBefore).append(" → ").append(target.getHp())
+        msg.append(targetName).append(": HP: ").append(hpBefore).append(" -> ").append(target.getHp())
                 .append(" (dmg: ").append(player.getAttack()).append("−").append(targetDefense).append("=")
                 .append(Math.max(0, player.getAttack() - targetDefense)).append(")");
 
@@ -253,7 +253,7 @@ public class BattleEngine {
         }
 
         if (fromPowerStone) {
-            msg.append(" | Cooldown unchanged → ").append(player.getSkillCooldown())
+            msg.append(" | Cooldown unchanged -> ").append(player.getSkillCooldown())
                     .append(" (Power Stone does not affect cooldown) | Power Stone consumed");
         } else {
             msg.append(" | Cooldown set to 3");
@@ -290,12 +290,12 @@ public class BattleEngine {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append(player.getName()).append(" → ");
+        message.append(player.getName()).append(" -> ");
 
         if (fromPowerStone) {
-            message.append("Item → Power Stone used → Arcane Blast triggered → All Enemies (ATK: ");
+            message.append("Item -> Power Stone used -> Arcane Blast triggered -> All Enemies (ATK: ");
         } else {
-            message.append("Arcane Blast → All Enemies (ATK: ");
+            message.append("Arcane Blast -> All Enemies (ATK: ");
         }
 
         message.append(startingAttack).append("): ");
@@ -305,7 +305,7 @@ public class BattleEngine {
             String enemyName = getCombatantLabel(enemy);
             int damage = Math.max(0, attackValue - defenses.get(i));
 
-            message.append(enemyName).append(" HP: ").append(hpBefore.get(i)).append(" → ").append(enemy.getHp());
+            message.append(enemyName).append(" HP: ").append(hpBefore.get(i)).append(" -> ").append(enemy.getHp());
             if (!enemy.isAlive()) {
                 message.append(" ✗ ELIMINATED");
             }
@@ -313,7 +313,7 @@ public class BattleEngine {
                     .append(damage).append(")");
 
             if (hpBefore.get(i) > 0 && !enemy.isAlive()) {
-                message.append(" | ATK: ").append(attackValue).append(" → ").append(attackValue + 10)
+                message.append(" | ATK: ").append(attackValue).append(" -> ").append(attackValue + 10)
                         .append(" (+10)");
                 attackValue += 10;
             }
@@ -324,7 +324,7 @@ public class BattleEngine {
         }
 
         if (fromPowerStone) {
-            message.append(" | Power Stone consumed | Cooldown unchanged → ").append(player.getSkillCooldown())
+            message.append(" | Power Stone consumed | Cooldown unchanged -> ").append(player.getSkillCooldown())
                     .append(" (Power Stone does not affect cooldown)");
         } else {
             message.append(" | Cooldown set to 3");
@@ -350,13 +350,13 @@ public class BattleEngine {
 
         if (target.getInvulnerable()) {
             // A3: Show Smoke Bomb active message
-            ui.showMessage(getCombatantLabel(enemy) + " → BasicAttack → " + target.getName()
+            ui.showMessage(getCombatantLabel(enemy) + " -> BasicAttack -> " + target.getName()
                     + ": 0 damage (Smoke Bomb active) | " + target.getName() + " HP: " + target.getHp());
         } else {
             int defense = target.getDefense();
             int damage = Math.max(0, enemy.getAttack() - defense);
-            ui.showMessage(getCombatantLabel(enemy) + " → BasicAttack → " + target.getName() + ": HP: " + hpBefore
-                    + " → " + target.getHp() + " (dmg: " + enemy.getAttack() + "−" + defense + "=" + damage + ")");
+            ui.showMessage(getCombatantLabel(enemy) + " -> BasicAttack -> " + target.getName() + ": HP: " + hpBefore
+                    + " -> " + target.getHp() + " (dmg: " + enemy.getAttack() + "−" + defense + "=" + damage + ")");
         }
     }
 
@@ -379,7 +379,7 @@ public class BattleEngine {
 
             // Build descriptive spawn message
             StringBuilder spawnMsg = new StringBuilder();
-            spawnMsg.append("All initial enemies eliminated → Backup Spawn triggered! ");
+            spawnMsg.append("All initial enemies eliminated -> Backup Spawn triggered! ");
             for (int i = 0; i < backupEnemies.size(); i++) {
                 Enemy backup = backupEnemies.get(i);
                 if (i > 0) {
