@@ -1,8 +1,10 @@
 abstract class TemporaryEffects implements StatusEffect {
     private int duration;
+    private int originalDuration;
 
     public TemporaryEffects(int startingDuration) {
         this.duration = startingDuration;
+        this.originalDuration = startingDuration;
     }
 
     @Override
@@ -18,9 +20,7 @@ abstract class TemporaryEffects implements StatusEffect {
     }
 
     @Override
-    public void extendDuration(int additionalDuration) {
-        if (additionalDuration > 0) {
-            this.duration += additionalDuration;
-        }
+    public void resetDuration() {
+        this.duration = originalDuration;
     }
 }

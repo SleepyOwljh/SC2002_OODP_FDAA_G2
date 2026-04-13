@@ -10,7 +10,7 @@ public class DefendAction implements Action {
 
         for (StatusEffect effect : user.getStatusEffects()) {
             if (effect instanceof DefendBuff) {
-                effect.extendDuration(1);
+                effect.resetDuration();
                 return;
             }
         }
