@@ -223,7 +223,6 @@ public class BattleEngine {
         if (fromPowerStone) {
             // PowerStone triggers the special skill action internally
             Action specialSkill = player.getSpecialSkillAction();
-            prepareActionContext(specialSkill);
             specialSkill.execute(player, target);
         } else {
             Action action = player.getSpecialSkillAction();
@@ -267,8 +266,7 @@ public class BattleEngine {
 
     // ─── C2: Consolidated ArcaneBlast handler (direct use + PowerStone) ───
     private void handleArcaneBlast(Player player, boolean fromPowerStone) {
-        Action specialSkill = player.getSpecialSkillAction();
-        prepareActionContext(specialSkill);
+        ArcaneBlastAction specialSkill = (ArcaneBlastAction) player.getSpecialSkillAction();
 
         List<Enemy> targets = getLivingEnemies();
         List<Integer> hpBefore = new ArrayList<Integer>();
@@ -281,7 +279,7 @@ public class BattleEngine {
             defenses.add(enemy.getDefense());
         }
 
-        specialSkill.execute(player, null);
+        specialSkill.execute(player, targets);
 
         if (!fromPowerStone) {
             player.startCooldown();
@@ -355,12 +353,6 @@ public class BattleEngine {
             int damage = Math.max(0, enemy.getAttack() - defense);
             ui.showMessage(getCombatantLabel(enemy) + " -> BasicAttack -> " + target.getName() + ": HP: " + hpBefore
                     + " -> " + target.getHp() + " (dmg: " + enemy.getAttack() + "-" + defense + "=" + damage + ")");
-        }
-    }
-
-    private void prepareActionContext(Action action) {
-        if (action instanceof ArcaneBlastAction) {
-            ((ArcaneBlastAction) action).setCurrentEnemies(activeEnemies);
         }
     }
 
