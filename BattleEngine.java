@@ -125,18 +125,16 @@ public class BattleEngine {
                 return;
             }
 
-            ((UseItemAction) action).setItem(chosenItem);
-
             if (chosenItem instanceof Potion) {
                 int hpBefore = player.getHp();
-                action.execute(player, player);
+                ((UseItemAction) action).execute(player, player, chosenItem);
                 ui.showMessage(player.getName() + " -> Item -> Potion used: HP: " + hpBefore + " -> "
                         + player.getHp() + " (+" + (player.getHp() - hpBefore) + ")");
                 return;
             }
 
             if (chosenItem instanceof SmokeBomb) {
-                action.execute(player, player);
+                ((UseItemAction) action).execute(player, player, chosenItem);
                 ui.showMessage(player.getName() + " -> Item -> Smoke Bomb used: Enemy attacks deal 0 damage this turn + next");
                 return;
             }
