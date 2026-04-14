@@ -125,34 +125,30 @@ public class BattleEngine {
                 return;
             }
 
-            ((UseItemAction) action).setItem(chosenItem);
-
             if (chosenItem instanceof Potion) {
                 int hpBefore = player.getHp();
-                action.execute(player, player);
+                ((UseItemAction) action).execute(player, player, chosenItem);
                 ui.showMessage(player.getName() + " -> Item -> Potion used: HP: " + hpBefore + " -> "
                         + player.getHp() + " (+" + (player.getHp() - hpBefore) + ")");
                 return;
             }
 
             if (chosenItem instanceof SmokeBomb) {
-                action.execute(player, player);
+                ((UseItemAction) action).execute(player, player, chosenItem);
                 ui.showMessage(player.getName() + " -> Item -> Smoke Bomb used: Enemy attacks deal 0 damage this turn + next");
                 return;
             }
 
             if (chosenItem instanceof PowerStone) {
                 Action specialSkill = player.getSpecialSkillAction();
-                // Remove the PowerStone from inventory (consumed on use)
-                player.getInventory().remove(chosenItem);
 
                 if (specialSkill instanceof ShieldBashAction) {
-                    handleShieldBash(player, true);
+                    handleShieldBash(player, true, (UseItemAction) action, chosenItem);
                     return;
                 }
 
                 if (specialSkill instanceof ArcaneBlastAction) {
-                    handleArcaneBlast(player, true);
+                    handleArcaneBlast(player, true, (UseItemAction) action, chosenItem);
                     return;
                 }
             }
@@ -165,12 +161,12 @@ public class BattleEngine {
         }
 
         if (action instanceof ShieldBashAction) {
-            handleShieldBash(player, false);
+            handleShieldBash(player, false, null, null);
             return;
         }
 
         if (action instanceof ArcaneBlastAction) {
-            handleArcaneBlast(player, false);
+            handleArcaneBlast(player, false, null, null);
             return;
         }
 
@@ -212,7 +208,7 @@ public class BattleEngine {
     }
 
     // ─── C1: Consolidated ShieldBash handler (direct use + PowerStone) ───
-    private void handleShieldBash(Player player, boolean fromPowerStone) {
+    private void handleShieldBash(Player player, boolean fromPowerStone, UseItemAction useItemAction, Item powerStoneItem) {
         Combatant target = ui.getTargetChoice(getLivingEnemies());
         if (target == null) {
             return;
@@ -223,10 +219,7 @@ public class BattleEngine {
         String targetName = getCombatantLabel(target);
 
         if (fromPowerStone) {
-            // PowerStone triggers the special skill action internally
-            Action specialSkill = player.getSpecialSkillAction();
-            prepareActionContext(specialSkill);
-            specialSkill.execute(player, target);
+            useItemAction.execute(player, target, powerStoneItem);
         } else {
             Action action = player.getSpecialSkillAction();
             action.execute(player, target);
@@ -268,9 +261,8 @@ public class BattleEngine {
     }
 
     // ─── C2: Consolidated ArcaneBlast handler (direct use + PowerStone) ───
-    private void handleArcaneBlast(Player player, boolean fromPowerStone) {
-        Action specialSkill = player.getSpecialSkillAction();
-        prepareActionContext(specialSkill);
+    private void handleArcaneBlast(Player player, boolean fromPowerStone, UseItemAction useItemAction, Item powerStoneItem) {
+        ArcaneBlastAction specialSkill = (ArcaneBlastAction) player.getSpecialSkillAction();
 
         List<Enemy> targets = getLivingEnemies();
         List<Integer> hpBefore = new ArrayList<Integer>();
@@ -283,7 +275,11 @@ public class BattleEngine {
             defenses.add(enemy.getDefense());
         }
 
-        specialSkill.execute(player, null);
+        if (fromPowerStone) {
+            useItemAction.execute(player, targets, powerStoneItem);
+        } else {
+            specialSkill.execute(player, targets);
+        }
 
         if (!fromPowerStone) {
             player.startCooldown();
@@ -357,12 +353,6 @@ public class BattleEngine {
             int damage = Math.max(0, enemy.getAttack() - defense);
             ui.showMessage(getCombatantLabel(enemy) + " -> BasicAttack -> " + target.getName() + ": HP: " + hpBefore
                     + " -> " + target.getHp() + " (dmg: " + enemy.getAttack() + "-" + defense + "=" + damage + ")");
-        }
-    }
-
-    private void prepareActionContext(Action action) {
-        if (action instanceof ArcaneBlastAction) {
-            ((ArcaneBlastAction) action).setCurrentEnemies(activeEnemies);
         }
     }
 

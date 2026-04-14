@@ -10,6 +10,6 @@ public interface StatusEffect {
         return false;
     }
 
-    default void extendDuration(int additionalDuration) {
+    default void resetDuration() {
     }
 }
