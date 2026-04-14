@@ -141,16 +141,14 @@ public class BattleEngine {
 
             if (chosenItem instanceof PowerStone) {
                 Action specialSkill = player.getSpecialSkillAction();
-                // Remove the PowerStone from inventory (consumed on use)
-                player.getInventory().remove(chosenItem);
 
                 if (specialSkill instanceof ShieldBashAction) {
-                    handleShieldBash(player, true);
+                    handleShieldBash(player, true, (UseItemAction) action, chosenItem);
                     return;
                 }
 
                 if (specialSkill instanceof ArcaneBlastAction) {
-                    handleArcaneBlast(player, true);
+                    handleArcaneBlast(player, true, (UseItemAction) action, chosenItem);
                     return;
                 }
             }
@@ -163,12 +161,12 @@ public class BattleEngine {
         }
 
         if (action instanceof ShieldBashAction) {
-            handleShieldBash(player, false);
+            handleShieldBash(player, false, null, null);
             return;
         }
 
         if (action instanceof ArcaneBlastAction) {
-            handleArcaneBlast(player, false);
+            handleArcaneBlast(player, false, null, null);
             return;
         }
 
@@ -210,7 +208,7 @@ public class BattleEngine {
     }
 
     // ─── C1: Consolidated ShieldBash handler (direct use + PowerStone) ───
-    private void handleShieldBash(Player player, boolean fromPowerStone) {
+    private void handleShieldBash(Player player, boolean fromPowerStone, UseItemAction useItemAction, Item powerStoneItem) {
         Combatant target = ui.getTargetChoice(getLivingEnemies());
         if (target == null) {
             return;
@@ -221,9 +219,7 @@ public class BattleEngine {
         String targetName = getCombatantLabel(target);
 
         if (fromPowerStone) {
-            // PowerStone triggers the special skill action internally
-            Action specialSkill = player.getSpecialSkillAction();
-            specialSkill.execute(player, target);
+            useItemAction.execute(player, target, powerStoneItem);
         } else {
             Action action = player.getSpecialSkillAction();
             action.execute(player, target);
@@ -265,7 +261,7 @@ public class BattleEngine {
     }
 
     // ─── C2: Consolidated ArcaneBlast handler (direct use + PowerStone) ───
-    private void handleArcaneBlast(Player player, boolean fromPowerStone) {
+    private void handleArcaneBlast(Player player, boolean fromPowerStone, UseItemAction useItemAction, Item powerStoneItem) {
         ArcaneBlastAction specialSkill = (ArcaneBlastAction) player.getSpecialSkillAction();
 
         List<Enemy> targets = getLivingEnemies();
@@ -279,7 +275,11 @@ public class BattleEngine {
             defenses.add(enemy.getDefense());
         }
 
-        specialSkill.execute(player, targets);
+        if (fromPowerStone) {
+            useItemAction.execute(player, targets, powerStoneItem);
+        } else {
+            specialSkill.execute(player, targets);
+        }
 
         if (!fromPowerStone) {
             player.startCooldown();
