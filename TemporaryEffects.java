@@ -1,6 +1,6 @@
 abstract class TemporaryEffects implements StatusEffect {
     private int duration;
-    private int originalDuration;
+    private final int originalDuration;
 
     public TemporaryEffects(int startingDuration) {
         this.duration = startingDuration;
